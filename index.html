@@ -6,6 +6,7 @@
   --ink:#241C1A; --ink2:#5E4E45; --edge:#D3BA90;
   --cheong:#1D6E7E; --cheong2:#4FA7B6; --jeok:#B8392B; --hwang:#D9991B; --nok:#3E7A4A;
   --stone-a:#C6CAC7; --stone-b:#A0A6A3; --stone-c:#757C79; --stone-ink:#16120F;
+  --stone-a2:#71766F; --stone-b2:#565C59; --stone-c2:#383D3B; --stone-ink2:#F1E4C8;
   --shadow:0 2px 0 var(--edge), 0 12px 26px rgba(70,50,22,.15);
 }
 @media (prefers-color-scheme:dark){
@@ -14,6 +15,7 @@
     --ink:#F0E3C8; --ink2:#B2A38D; --edge:#3A444B;
     --cheong:#5CB8C7; --cheong2:#8AD6E1; --jeok:#E4695C; --hwang:#EFB93F; --nok:#68B073;
     --stone-a:#B9BEBB; --stone-b:#949A97; --stone-c:#6B716E;
+    --stone-a2:#565C59; --stone-b2:#3A403E; --stone-c2:#212524;
     --shadow:0 2px 0 #0D1113, 0 12px 26px rgba(0,0,0,.55);
   }
 }
@@ -22,6 +24,7 @@
   --ink:#F0E3C8; --ink2:#B2A38D; --edge:#3A444B;
   --cheong:#5CB8C7; --cheong2:#8AD6E1; --jeok:#E4695C; --hwang:#EFB93F; --nok:#68B073;
   --stone-a:#B9BEBB; --stone-b:#949A97; --stone-c:#6B716E;
+  --stone-a2:#565C59; --stone-b2:#3A403E; --stone-c2:#212524;
   --shadow:0 2px 0 #0D1113, 0 12px 26px rgba(0,0,0,.55);
 }
 
@@ -139,23 +142,21 @@ canvas{width:100%;aspect-ratio:960/660;display:block;border-radius:12px;border:1
 .stone:nth-child(3n+1){border-radius:50% 50% 46% 54% / 60% 40% 60% 40%}
 .stone:hover{transform:translateY(-3px)}
 .stone.sel{transform:translateY(-6px);box-shadow:0 9px 0 rgba(60,66,64,.75), 0 16px 24px rgba(40,30,15,.3), 0 0 0 3px var(--hwang)}
-.stone .dot{flex:0 0 auto;width:11px;height:11px;border-radius:50%;box-shadow:inset -2px -2px 0 rgba(0,0,0,.25)}
 .stone.gone{animation:sink .5s forwards}
 @keyframes sink{to{opacity:0;transform:translateY(16px) scale(.8)}}
-.stone.type{justify-content:center;min-height:80px;
-  background:radial-gradient(125% 150% at 33% 16%, var(--stone-a) 0%, var(--stone-b) 45%, var(--stone-c) 100%)}
+/* 논증 방식(귀납·연역) 돌은 전제/결론 돌보다 짙은 색으로 구분합니다 */
+.stone.type{justify-content:center;min-height:80px;color:var(--stone-ink2);
+  background:radial-gradient(125% 150% at 33% 16%, var(--stone-a2) 0%, var(--stone-b2) 45%, var(--stone-c2) 100%)}
 .stone.type .txt{font-family:"Jua",sans-serif;font-size:27px;letter-spacing:.14em}
 .stone.type::after{content:"논증 방식";position:absolute;bottom:9px;left:50%;transform:translateX(-50%);
-  font-family:"Jua",sans-serif;font-size:10px;letter-spacing:.18em;color:rgba(22,18,15,.62)}
+  font-family:"Jua",sans-serif;font-size:10px;letter-spacing:.18em;color:rgba(241,228,200,.7)}
 /* 사용자가 올린 돌 사진이 있으면, 선반의 돌 버튼도 그 사진을 배경으로 씁니다 */
 .stone.photo{background-image:var(--simg);background-size:cover;background-position:center;color:#FBF4E4}
 .stone.photo .txt{background:rgba(10,10,8,.55);padding:2px 7px;border-radius:7px;
   box-decoration-break:clone;-webkit-box-decoration-break:clone}
-.stone.photo .dot{box-shadow:inset -2px -2px 0 rgba(0,0,0,.3), 0 0 0 2px rgba(255,255,255,.55)}
 .stone.photo.type::after{color:rgba(255,255,255,.9);text-shadow:0 1px 3px rgba(0,0,0,.6)}
-.d-p{background:var(--cheong)} .d-c{background:var(--jeok)} .d-t{background:var(--hwang)}
 .foot{margin:0;font-family:"Jua",sans-serif;font-weight:700;font-size:14.5px;color:var(--ink2);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.foot .d{width:11px;height:11px;border-radius:50%;display:inline-block}
+.foot .d{width:15px;height:15px;border-radius:50%;display:inline-block;background:radial-gradient(125% 150% at 33% 16%, var(--stone-a2) 0%, var(--stone-b2) 45%, var(--stone-c2) 100%)}
 
 @media (max-width:680px){
   .hud{gap:8px 14px}
@@ -209,7 +210,7 @@ canvas{width:100%;aspect-ratio:960/660;display:block;border-radius:12px;border:1
   </div>
   <div class="shelf" id="shelf"></div>
   <p class="foot">
-    <i class="d d-p"></i> 전제 &nbsp;<i class="d d-c"></i> 결론 &nbsp;<i class="d d-t"></i> 논증 방식
+    <i class="d"></i> 짙은 색 돌 = 논증 방식(귀납·연역)
   </p>
 </div>
 
@@ -502,8 +503,7 @@ function renderShelf(){
     if(simgURL) b.style.setProperty('--simg', 'url("'+simgURL+'")');
     b.dataset.id = st.id;
     b.setAttribute('aria-pressed', G.sel===st.id ? 'true':'false');
-    const dot = st.role==='type' ? 'd-t' : st.role==='con' ? 'd-c' : 'd-p';
-    b.innerHTML = (st.role==='type'?'':'<i class="dot '+dot+'"></i>') + '<span class="txt">'+st.text+'</span>';
+    b.innerHTML = '<span class="txt">'+st.text+'</span>';
     box.appendChild(b);
   });
 }
@@ -1000,16 +1000,24 @@ function kid(x,y,arm){
 }
 
 /* ────────── 돌 ────────── */
-const ROLE_COLOR = { p0:'#1D6E7E', p1:'#1D6E7E', con:'#B8392B', type:'#D9991B' };
 function stoneFace(x,y,st,scale){
   const rx = 45*scale, ry = 28*scale;
   const custom = G.customImg.stone;
+  const isType = st.role==='type';
   ctx.fillStyle = 'rgba(8,44,56,.34)'; ell(x+5, y+13, rx*0.96, ry*0.6);
   if(custom){
     ctx.save();
     ctx.beginPath(); ctx.ellipse(x,y,rx,ry,0,0,6.2832); ctx.clip();
     drawCover(custom, x-rx, y-ry, rx*2, ry*2);
     ctx.restore();
+    /* 논증 방식 돌은 사진 위에도 짙은 막을 한 겹 더 씌워 구분합니다 */
+    if(isType){ ctx.fillStyle = 'rgba(10,10,10,.4)'; ell(x, y, rx, ry); }
+  } else if(isType){
+    const g = ctx.createLinearGradient(x-rx, y-ry, x+rx*0.6, y+ry);
+    g.addColorStop(0,'#7B8480'); g.addColorStop(.45,'#565C59'); g.addColorStop(1,'#383D3B');
+    ctx.fillStyle = g; ell(x, y, rx, ry);
+    ctx.fillStyle = 'rgba(255,255,255,.16)'; ell(x-rx*0.26, y-ry*0.38, rx*0.5, ry*0.4);
+    ctx.fillStyle = 'rgba(0,0,0,.3)'; ell(x+rx*0.3, y+ry*0.42, rx*0.44, ry*0.3);
   } else {
     const g = ctx.createLinearGradient(x-rx, y-ry, x+rx*0.6, y+ry);
     g.addColorStop(0,'#CDD1CE'); g.addColorStop(.45,'#A4AAA7'); g.addColorStop(1,'#767D7A');
@@ -1018,10 +1026,9 @@ function stoneFace(x,y,st,scale){
     ctx.fillStyle = 'rgba(40,46,44,.22)'; ell(x+rx*0.3, y+ry*0.42, rx*0.44, ry*0.3);
   }
   if(scale>0.6){
-    if(custom){ ctx.fillStyle = 'rgba(10,10,8,.5)'; ell(x, y+ry*0.12, rx*0.86, ry*0.5); }
-    ctx.fillStyle = ROLE_COLOR[st.role]; ell(x, y-ry*0.52, 4.2, 4.2);
-    ctx.fillStyle = custom ? '#FBF4E4' : '#171310'; ctx.textAlign='center'; ctx.textBaseline='middle';
-    if(st.role==='type'){ ctx.font = '700 19px "Jua", sans-serif'; ctx.fillText(st.text, x, y+5); }
+    if(custom && !isType){ ctx.fillStyle = 'rgba(10,10,8,.5)'; ell(x, y+ry*0.12, rx*0.86, ry*0.5); }
+    ctx.fillStyle = (custom || isType) ? '#FBF4E4' : '#171310'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    if(isType){ ctx.font = '700 19px "Jua", sans-serif'; ctx.fillText(st.text, x, y+5); }
     else { ctx.font = '700 14px "Jua", sans-serif'; ctx.fillText(st.short, x, y+5); }
   }
 }
