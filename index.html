@@ -1163,10 +1163,10 @@ function draw(T){
 
   const c = G.char;
   const bob = G.char.t>=1 ? Math.sin(T*2)*1.6 : 0;
-  if(G.customImg.traveler) drawCharImg(G.customImg.traveler, c.x, c.y+bob, 96);
+  if(G.customImg.traveler) drawCharImg(G.customImg.traveler, c.x, c.y+bob, 150);
   else traveler(c.x, c.y, bob);
   const armT = G.charging ? 0.35+G.power*0.3 : G.kidArm;
-  if(G.customImg.kid) drawCharImg(G.customImg.kid, g.origin.x, g.origin.y+16, 84);
+  if(G.customImg.kid) drawCharImg(G.customImg.kid, g.origin.x, g.origin.y+16, 130);
   else kid(g.origin.x, g.origin.y+16, armT);
 
   if(G.sel!==null && !G.fly && G.running){
