@@ -147,6 +147,12 @@ canvas{width:100%;aspect-ratio:960/660;display:block;border-radius:12px;border:1
 .stone.type .txt{font-family:"Do Hyeon",sans-serif;font-size:27px;letter-spacing:.14em}
 .stone.type::after{content:"논증 방식";position:absolute;bottom:9px;left:50%;transform:translateX(-50%);
   font-family:"Do Hyeon",sans-serif;font-size:10px;letter-spacing:.18em;color:rgba(22,18,15,.62)}
+/* 사용자가 올린 돌 사진이 있으면, 선반의 돌 버튼도 그 사진을 배경으로 씁니다 */
+.stone.photo{background-image:var(--simg);background-size:cover;background-position:center;color:#FBF4E4}
+.stone.photo .txt{background:rgba(10,10,8,.55);padding:2px 7px;border-radius:7px;
+  box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.stone.photo .dot{box-shadow:inset -2px -2px 0 rgba(0,0,0,.3), 0 0 0 2px rgba(255,255,255,.55)}
+.stone.photo.type::after{color:rgba(255,255,255,.9);text-shadow:0 1px 3px rgba(0,0,0,.6)}
 .d-p{background:var(--cheong)} .d-c{background:var(--jeok)} .d-t{background:var(--hwang)}
 .foot{margin:0;font-family:"Gamja Flower",cursive;font-weight:700;font-size:14.5px;color:var(--ink2);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .foot .d{width:11px;height:11px;border-radius:50%;display:inline-block}
@@ -405,7 +411,7 @@ function loadDefaultImage(key, i){
   i = i||0;
   if(i>=DEFAULT_IMG_EXTS.length) return;
   const im = new Image();
-  im.onload = ()=>{ if(!(store.images && store.images[key])) G.customImg[key] = im; };
+  im.onload = ()=>{ if(!(store.images && store.images[key])){ G.customImg[key] = im; if(key==='stone') renderShelf(); } };
   im.onerror = ()=>{ loadDefaultImage(key, i+1); };
   im.src = 'images/'+key+'.'+DEFAULT_IMG_EXTS[i];
 }
@@ -414,7 +420,7 @@ function applyStoredImages(){
   Object.keys(IMG_SPECS).forEach(key=>{
     if(imgs[key]){
       const im = new Image();
-      im.onload = ()=>{ G.customImg[key] = im; };
+      im.onload = ()=>{ G.customImg[key] = im; if(key==='stone') renderShelf(); };
       im.onerror = ()=>{ delete G.customImg[key]; loadDefaultImage(key); };
       im.src = imgs[key];
     } else {
@@ -489,9 +495,11 @@ function buildStage(idx){
 /* ────────── 아래 돌 선반 ────────── */
 function renderShelf(){
   const box = $('#shelf'); box.innerHTML = '';
+  const simgURL = G.customImg.stone ? G.customImg.stone.src : null;
   G.shelf.forEach(st=>{
     const b = document.createElement('button');
-    b.type = 'button'; b.className = 'stone' + (st.role==='type'?' type':'') + (G.sel===st.id?' sel':'');
+    b.type = 'button'; b.className = 'stone' + (st.role==='type'?' type':'') + (G.sel===st.id?' sel':'') + (simgURL?' photo':'');
+    if(simgURL) b.style.setProperty('--simg', 'url("'+simgURL+'")');
     b.dataset.id = st.id;
     b.setAttribute('aria-pressed', G.sel===st.id ? 'true':'false');
     const dot = st.role==='type' ? 'd-t' : st.role==='con' ? 'd-c' : 'd-p';
