@@ -400,24 +400,38 @@ const G = {
 };
 
 /* ────────── 사진 바꾸기 (배경·인물·돌) ──────────
-   여기서 정한 사진은 이 기기의 이 브라우저 안에만 저장됩니다(다른 기기와는 공유되지 않음).
-   화면 위쪽 "사진 바꾸기" 버튼으로 배경/어르신/아이/돌 사진을 각각 올릴 수 있습니다. */
+   두 가지 방법으로 사진을 바꿀 수 있습니다.
+   1) images/ 폴더에 bg·traveler·kid·stone 사진을 넣어 두면 → 이 페이지를 여는
+      "모든 사람"에게 그 사진이 기본으로 보입니다. (학생 화면에도 적용하려면 이 방법)
+   2) 화면 위쪽 "사진 바꾸기" 버튼으로 올리면 → 지금 이 기기의 이 브라우저에만
+      적용됩니다(미리보기용). "파일로 저장"으로 내려받아 images/ 폴더에 넣으면
+      1)번처럼 모두에게 적용할 수 있습니다. */
 const IMG_SPECS = {
-  bg:       { max:960, mime:'image/jpeg', q:0.86 },  /* 강 배경 — 화면을 꽉 채우는 사진 */
-  traveler: { max:300, mime:'image/png',  q:0.92 },  /* 건너는 어르신 */
-  kid:      { max:260, mime:'image/png',  q:0.92 },  /* 돌 던지는 아이 */
-  stone:    { max:180, mime:'image/png',  q:0.92 }   /* 돌 하나 */
+  bg:       { max:960, mime:'image/jpeg', q:0.86, ext:'jpg' },  /* 강 배경 — 화면을 꽉 채우는 사진 */
+  traveler: { max:300, mime:'image/png',  q:0.92, ext:'png' },  /* 건너는 어르신 */
+  kid:      { max:260, mime:'image/png',  q:0.92, ext:'png' },  /* 돌 던지는 아이 */
+  stone:    { max:180, mime:'image/png',  q:0.92, ext:'png' }   /* 돌 하나 */
 };
+const DEFAULT_IMG_EXTS = ['jpg','jpeg','png','webp'];
+function loadDefaultImage(key, i){
+  i = i||0;
+  if(i>=DEFAULT_IMG_EXTS.length) return;
+  const im = new Image();
+  im.onload = ()=>{ if(!(store.images && store.images[key])) G.customImg[key] = im; };
+  im.onerror = ()=>{ loadDefaultImage(key, i+1); };
+  im.src = 'images/'+key+'.'+DEFAULT_IMG_EXTS[i];
+}
 function applyStoredImages(){
   const imgs = store.images || {};
   Object.keys(IMG_SPECS).forEach(key=>{
     if(imgs[key]){
       const im = new Image();
       im.onload = ()=>{ G.customImg[key] = im; };
-      im.onerror = ()=>{ delete G.customImg[key]; };
+      im.onerror = ()=>{ delete G.customImg[key]; loadDefaultImage(key); };
       im.src = imgs[key];
     } else {
       delete G.customImg[key];
+      loadDefaultImage(key);
     }
   });
 }
@@ -453,6 +467,11 @@ function drawCharImg(img, x, y, targetH){
   const scale = targetH/img.height, w = img.width*scale;
   ctx.fillStyle='rgba(10,50,60,.2)'; ell(x, y+4, w*0.34, 6);
   ctx.drawImage(img, x-w/2, y-targetH, w, targetH);
+}
+function downloadDataURL(dataURL, filename){
+  const a = document.createElement('a');
+  a.href = dataURL; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
 }
 
 /* ────────── 스테이지 준비 ────────── */
@@ -749,6 +768,7 @@ function imgRow(key, label, hint){
       '<p style="margin:0 0 8px;font-size:13px;color:var(--ink2)">'+hint+'</p>' +
       '<div class="btnrow" style="margin-top:0">' +
         '<label class="btn ghost" style="cursor:pointer">사진 선택<input type="file" accept="image/*" data-imgkey="'+key+'" hidden></label>' +
+        (has ? '<button class="btn ghost" data-imgexport="'+key+'" type="button">파일로 저장</button>' : '') +
         (has ? '<button class="btn ghost" data-imgreset="'+key+'" type="button">기본으로</button>' : '') +
       '</div>' +
     '</div>' +
@@ -757,7 +777,10 @@ function imgRow(key, label, hint){
 function showDecor(){
   openScreen(
     '<h2>사진 바꾸기</h2>' +
-    '<p class="lead">배경, 어르신, 아이, 돌 사진을 원하는 사진으로 바꿀 수 있어요. 바꾼 사진은 <b>이 기기의 이 브라우저</b>에만 저장돼요.</p>' +
+    '<p class="lead">배경, 어르신, 아이, 돌 사진을 원하는 사진으로 바꿀 수 있어요.<br>'+
+    '단, 여기서 올린 사진은 <b>지금 이 화면(이 기기)에서만</b> 보여요 — 학생들 화면에는 나타나지 않습니다.<br>'+
+    '<b>학생 모두의 화면에 똑같이 적용</b>하려면: 아래에서 사진을 올린 뒤 <b>파일로 저장</b>을 눌러 내려받고, 그 파일을 저(Claude)에게 전달해 주세요. '+
+    '제가 <code>images</code> 폴더에 넣고 사이트에 반영해 드릴게요.</p>' +
     imgRow('bg','배경 (강 풍경)','화면을 꽉 채우는, 가로로 넓은 사진이 잘 어울려요.') +
     imgRow('traveler','어르신 (건너는 사람)','배경이 투명한 PNG 사진이면 더 자연스러워요.') +
     imgRow('kid','아이 (돌을 던지는 사람)','배경이 투명한 PNG 사진이면 더 자연스러워요.') +
@@ -810,6 +833,12 @@ function showEnding(){
   );
 }
 SCR.addEventListener('click', e=>{
+  const eb = e.target.closest('button[data-imgexport]');
+  if(eb){
+    const key = eb.dataset.imgexport;
+    if(store.images && store.images[key]) downloadDataURL(store.images[key], key+'.'+IMG_SPECS[key].ext);
+    return;
+  }
   const rb = e.target.closest('button[data-imgreset]');
   if(rb){
     const key = rb.dataset.imgreset;
